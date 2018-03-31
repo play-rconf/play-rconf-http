@@ -24,11 +24,11 @@
 package io.playrconf.provider;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import io.playrconf.sdk.AbstractProvider;
 import io.playrconf.sdk.FileCfgObject;
 import io.playrconf.sdk.KeyValueCfgObject;
-import io.playrconf.sdk.exception.BadValueException;
 import io.playrconf.sdk.exception.RemoteConfException;
 
 import java.io.IOException;
@@ -81,17 +81,17 @@ public class HttpProvider extends AbstractProvider {
     @Override
     public void loadData(final Config config,
                          final Consumer<KeyValueCfgObject> kvObjConsumer,
-                         final Consumer<FileCfgObject> fileObjConsumer) throws RemoteConfException {
+                         final Consumer<FileCfgObject> fileObjConsumer) throws ConfigException, RemoteConfException {
         final URL httpUrl;
         try {
             httpUrl = new URL(config.getString("url"));
 
-            final Config remoteconfiguration = ConfigFactory.parseURL(httpUrl);
-            remoteconfiguration.entrySet().forEach(entry -> {
+            final Config remoteConfiguration = ConfigFactory.parseURL(httpUrl);
+            remoteConfiguration.entrySet().forEach(entry -> {
                 final String value = entry.getValue().render();
                 if (isFile(value)) {
                     fileObjConsumer.accept(
-                        new FileCfgObject(value)
+                        new FileCfgObject(entry.getKey(), value)
                     );
                 } else {
                     kvObjConsumer.accept(
@@ -100,7 +100,7 @@ public class HttpProvider extends AbstractProvider {
                 }
             });
         } catch (final MalformedURLException ex) {
-            throw new BadValueException("url", ex.getMessage());
+            throw new ConfigException.BadValue("url", ex.getMessage());
         }
     }
 }
