@@ -2,8 +2,7 @@
 
 ## Introduction
 
-This document explains how to contribute changes to the
-play-remote-configuration project.
+This document explains how to contribute changes to the play-rconf project.
 
 
 
