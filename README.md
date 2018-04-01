@@ -17,5 +17,27 @@ configuration with a Play Framework application.
 
 
 
+## How to use
+
+To enable this provider, just add the classpath `"io.playrconf.provider.HttpProvider"`
+and the following configuration:
+
+```hocon
+remote-configuration {
+
+  ## Provider - HTTP
+  # ~~~~~
+  # Retrieves configuration from a simple HTTP server
+  http {
+
+    # URL where is located the configuration file to fetch. You can
+    # use basic authentication
+    url = "https://username:password@domain.com/my-configuration.conf"
+    url = ${?REMOTECONF_HTTP_URL}
+  }
+}
+```
+
+
 ## License
 This project is released under terms of the [MIT license](https://raw.githubusercontent.com/play-rconf/play-rconf-http/master/LICENSE).
