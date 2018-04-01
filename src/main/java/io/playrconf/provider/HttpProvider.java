@@ -39,6 +39,8 @@ import java.util.Properties;
 import java.util.function.Consumer;
 
 /**
+ * Retrieves configuration hosted behind a simple HTTP server.
+ *
  * @author Thibault Meyer
  * @since 18.03.31
  */
