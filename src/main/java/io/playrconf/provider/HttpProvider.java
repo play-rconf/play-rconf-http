@@ -26,6 +26,7 @@ package io.playrconf.provider;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigParseOptions;
 import io.playrconf.sdk.AbstractProvider;
 import io.playrconf.sdk.FileCfgObject;
 import io.playrconf.sdk.KeyValueCfgObject;
@@ -35,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Properties;
 import java.util.function.Consumer;
 
@@ -84,11 +86,14 @@ public class HttpProvider extends AbstractProvider {
     public void loadData(final Config config,
                          final Consumer<KeyValueCfgObject> kvObjConsumer,
                          final Consumer<FileCfgObject> fileObjConsumer) throws ConfigException, RemoteConfException {
-        final URL httpUrl;
         try {
-            httpUrl = new URL(config.getString("url"));
+            final URL httpUrl = new URL(config.getString("url"));
+            final ConfigParseOptions configParseOptions = ConfigParseOptions
+                .defaults()
+                .setOriginDescription("play-rconf")
+                .setAllowMissing(false);
+            final Config remoteConfiguration = ConfigFactory.parseURL(httpUrl, configParseOptions);
 
-            final Config remoteConfiguration = ConfigFactory.parseURL(httpUrl);
             remoteConfiguration.entrySet().forEach(entry -> {
                 final String value = entry.getValue().render();
                 if (isFile(value)) {
@@ -101,6 +106,24 @@ public class HttpProvider extends AbstractProvider {
                     );
                 }
             });
+        } catch (final ConfigException ex2) {
+            if (ex2.getCause() != null) {
+                throw new ConfigException.BadPath(
+                    config.getString("url"),
+                    ex2.getCause().getClass().getName(),
+                    ex2.getCause()
+                );
+            } else {
+                throw new ConfigException.ValidationFailed(
+                    Collections.singletonList(
+                        new ConfigException.ValidationProblem(
+                            config.getString("url"),
+                            ex2.origin(),
+                            ex2.getMessage()
+                        )
+                    )
+                );
+            }
         } catch (final MalformedURLException ex) {
             throw new ConfigException.BadValue("url", ex.getMessage());
         }

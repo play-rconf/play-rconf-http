@@ -24,6 +24,7 @@
 package io.playrconf.provider;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import io.playrconf.sdk.FileCfgObject;
 import io.playrconf.sdk.Provider;
@@ -48,16 +49,35 @@ import java.util.Properties;
 public class HttpProviderTest {
 
     /**
-     * URL of the configuration file to load.
-     */
-    private static final String CFG_URL = "https://pastebin.com/raw/x28wW7J8";
-
-    /**
      * Initial configuration.
      */
     private static final Config INITIAL_CONFIGURATION = ConfigFactory.parseString(
         "application.hello = \"Bad value\"\n"
-            + "http.url = \"" + CFG_URL + "\"\n"
+            + "http.url = \"https://pastebin.com/raw/x28wW7J8\"\n"
+    );
+
+    /**
+     * Initial configuration. Requested remote configuration file does not exists.
+     */
+    private static final Config INITIAL_CONFIGURATION_ERROR_NOT_FOUND = ConfigFactory.parseString(
+        "application.hello = \"Bad value\"\n"
+            + "http.url = \"https://pastebin.com/raw/KaDmFAYn87\"\n"
+    );
+
+    /**
+     * Initial configuration. Remote server can't be resolved.
+     */
+    private static final Config INITIAL_CONFIGURATION_ERROR_UNKNOWN_HOST = ConfigFactory.parseString(
+        "application.hello = \"Bad value\"\n"
+            + "http.url = \"https://doma1n-do3s-not-3x15t5-2832893729387.com/config\"\n"
+    );
+
+    /**
+     * Initial configuration. Requested remote configuration file is not valid.
+     */
+    private static final Config INITIAL_CONFIGURATION_ERROR_INVALID_FILE = ConfigFactory.parseString(
+        "application.hello = \"Bad value\"\n"
+            + "http.url = \"https://pastebin.com/raw/KaDmFAYn\"\n"
     );
 
     @Test
@@ -111,5 +131,50 @@ public class HttpProviderTest {
             ex.printStackTrace();
             Assert.fail();
         }
+    }
+
+    @Test(expected = ConfigException.BadPath.class)
+    public void httpTest_002() {
+        // Load remote configuration
+        final StringBuilder stringBuilder = new StringBuilder(512);
+        final Provider provider = new HttpProvider();
+        provider.loadData(
+            INITIAL_CONFIGURATION_ERROR_NOT_FOUND.getConfig(provider.getConfigurationObjectName()),
+            keyValueCfgObject -> keyValueCfgObject.apply(stringBuilder),
+            FileCfgObject::apply
+        );
+        ConfigFactory
+            .parseString(stringBuilder.toString())
+            .withFallback(INITIAL_CONFIGURATION_ERROR_NOT_FOUND);
+    }
+
+    @Test(expected = ConfigException.BadPath.class)
+    public void httpTest_003() {
+        // Load remote configuration
+        final StringBuilder stringBuilder = new StringBuilder(512);
+        final Provider provider = new HttpProvider();
+        provider.loadData(
+            INITIAL_CONFIGURATION_ERROR_UNKNOWN_HOST.getConfig(provider.getConfigurationObjectName()),
+            keyValueCfgObject -> keyValueCfgObject.apply(stringBuilder),
+            FileCfgObject::apply
+        );
+        ConfigFactory
+            .parseString(stringBuilder.toString())
+            .withFallback(INITIAL_CONFIGURATION_ERROR_UNKNOWN_HOST);
+    }
+
+    @Test(expected = ConfigException.ValidationFailed.class)
+    public void httpTest_004() {
+        // Load remote configuration
+        final StringBuilder stringBuilder = new StringBuilder(512);
+        final Provider provider = new HttpProvider();
+        provider.loadData(
+            INITIAL_CONFIGURATION_ERROR_INVALID_FILE.getConfig(provider.getConfigurationObjectName()),
+            keyValueCfgObject -> keyValueCfgObject.apply(stringBuilder),
+            FileCfgObject::apply
+        );
+        ConfigFactory
+            .parseString(stringBuilder.toString())
+            .withFallback(INITIAL_CONFIGURATION_ERROR_INVALID_FILE);
     }
 }
