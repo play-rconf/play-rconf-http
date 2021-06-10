@@ -1,8 +1,8 @@
 # Play Remote Configuration - HTTP
 
 
-[![Latest release](https://img.shields.io/badge/latest_release-19.09-orange.svg)](https://github.com/play-rconf/play-rconf-http/releases)
-[![JitPack](https://img.shields.io/badge/JitPack-release~19.09-brightgreen.svg)](https://jitpack.io/#play-rconf/play-rconf-http)
+[![Latest release](https://img.shields.io/badge/latest_release-21.06-orange.svg)](https://github.com/play-rconf/play-rconf-http/releases)
+[![JitPack](https://img.shields.io/badge/JitPack-release~21.06-brightgreen.svg)](https://jitpack.io/#play-rconf/play-rconf-http)
 [![Build](https://api.travis-ci.org/play-rconf/play-rconf-http.svg?branch=master)](https://travis-ci.org/play-rconf/play-rconf-http)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/play-rconf/play-rconf-http/master/LICENSE)
 

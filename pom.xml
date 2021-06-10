@@ -6,7 +6,7 @@
 
     <groupId>io.play-rconf</groupId>
     <artifactId>play-rconf-http</artifactId>
-    <version>19.09</version>
+    <version>21.06</version>
     <name>Play Remote Configuration - HTTP</name>
     <description>Retrieves configuration hosted behind a simple HTTP server</description>
     <url>https://github.com/play-rconf/play-rconf-http</url>
