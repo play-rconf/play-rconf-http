@@ -133,7 +133,7 @@ public class HttpProviderTest {
         }
     }
 
-    @Test(expected = ConfigException.BadPath.class)
+    @Test(expected = ConfigException.ValidationFailed.class)
     public void httpTest_002() {
         // Load remote configuration
         final StringBuilder stringBuilder = new StringBuilder(512);
@@ -148,7 +148,7 @@ public class HttpProviderTest {
             .withFallback(INITIAL_CONFIGURATION_ERROR_NOT_FOUND);
     }
 
-    @Test(expected = ConfigException.BadPath.class)
+    @Test(expected = ConfigException.BadValue.class)
     public void httpTest_003() {
         // Load remote configuration
         final StringBuilder stringBuilder = new StringBuilder(512);

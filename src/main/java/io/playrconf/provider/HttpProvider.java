@@ -26,16 +26,24 @@ package io.playrconf.provider;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigParseOptions;
 import io.playrconf.sdk.AbstractProvider;
 import io.playrconf.sdk.FileCfgObject;
 import io.playrconf.sdk.KeyValueCfgObject;
 import io.playrconf.sdk.exception.RemoteConfException;
+import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -87,12 +95,26 @@ public class HttpProvider extends AbstractProvider {
                          final Consumer<KeyValueCfgObject> kvObjConsumer,
                          final Consumer<FileCfgObject> fileObjConsumer) throws ConfigException, RemoteConfException {
         try {
-            final URL httpUrl = new URL(config.getString("url"));
-            final ConfigParseOptions configParseOptions = ConfigParseOptions
-                .defaults()
-                .setOriginDescription("play-rconf")
-                .setAllowMissing(false);
-            final Config remoteConfiguration = ConfigFactory.parseURL(httpUrl, configParseOptions);
+            final HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
+
+            if (config.hasPath("basic-auth.username") && config.hasPath("basic-auth.password")) {
+                final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                final UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(
+                    config.getString("basic-auth.username"),
+                    config.getString("basic-auth.password")
+                );
+                credentialsProvider.setCredentials(AuthScope.ANY, credentials);
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+            }
+
+            final HttpClient httpClient = httpClientBuilder
+                .setUserAgent("Play-RemoteConfiguration-Client")
+                .build();
+
+            final HttpResponse httpResponse = httpClient.execute(new HttpGet(config.getString("url")));
+            final String configurationContent = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+
+            final Config remoteConfiguration = ConfigFactory.parseString(configurationContent);
 
             remoteConfiguration.entrySet().forEach(entry -> {
                 final String value = entry.getValue().render();
@@ -124,8 +146,10 @@ public class HttpProvider extends AbstractProvider {
                     )
                 );
             }
-        } catch (final MalformedURLException ex) {
+        } catch (final MalformedURLException | UnknownHostException ex) {
             throw new ConfigException.BadValue("url", ex.getMessage());
+        } catch (final IOException ex) {
+            throw new ConfigException.IO(config.origin(), ex.getMessage());
         }
     }
 }

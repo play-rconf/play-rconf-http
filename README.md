@@ -34,6 +34,12 @@ remote-configuration {
     # use basic authentication
     url = "https://username:password@domain.com/my-configuration.conf"
     url = ${?REMOTECONF_HTTP_URL}
+
+    # Basic authentication
+    basic-auth {
+      username = ${?REMOTECONF_HTTP_BASICAUTH_USERNAME}
+      password = ${?REMOTECONF_HTTP_BASICAUTH_PASSWORD}
+    }
   }
 }
 ```
